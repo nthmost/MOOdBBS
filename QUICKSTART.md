@@ -10,20 +10,25 @@ pip install -r requirements.txt
 ## Running MOOdBBS
 
 ```bash
-# Option 1: Use launcher script
-./run_moodbbs.sh
+# TUI (Terminal User Interface) - Recommended
+python tui.py
 
-# Option 2: Run directly
-python src/main.py
+# Command Shell (for scripting)
+python shell.py
 ```
 
 ## First Time Setup
 
 On first run, MOOdBBS will:
-- Create the SQLite database at `data/moodbbs.db`
-- Add 3 sample quests for San Francisco
-- Add a sample "Optimist" trait (+5 mood)
-- Add a welcome mood event (+10 mood)
+1. Show the **Setup Wizard** (TUI only):
+   - Enter your zipcode (validated for US/CA/UK formats)
+   - Select transportation preferences (walking, biking, transit, car)
+   - List museum/venue memberships (optional)
+
+2. Create the SQLite database at `data/moodbbs.db`
+3. Ready to start creating quests!
+
+Your profile settings are saved and can be updated anytime in Settings.
 
 ## Basic Usage
 
@@ -38,9 +43,10 @@ Shows:
 
 ### Main Menu
 1. **WanderMOO** - Quest system
+   - Create quests (smart mode with LLM or manual)
    - View active quests
-   - Complete quests (enter quest number)
-   - Optionally log mood after completion
+   - Complete quests
+   - Manage quests (delete individual or destroy all)
 
 2. **MoodStats** - Mood details
    - View current mood score
@@ -48,11 +54,14 @@ Shows:
    - See active mood modifiers
 
 3. **LogAction** - Manual mood logging
-   - Quick log common events (1-6)
-   - Create custom events (7)
-   - Events last 24 hours by default
+   - Quick log common events
+   - Create custom events
+   - Events affect mood immediately
 
-4. **Settings** - Coming soon
+4. **Settings** - Profile configuration
+   - Update zipcode
+   - Change transportation preferences
+   - Manage memberships
 
 5. **About** - Project info
 

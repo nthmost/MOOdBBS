@@ -1,0 +1,168 @@
+# San Francisco Neighborhoods
+# Used for location tracking and exploration tracking
+
+neighborhoods:
+  # Central/Downtown
+  - name: Financial District
+    zone: downtown
+    tags: [urban, business]
+
+  - name: Union Square
+    zone: downtown
+    tags: [shopping, tourist]
+
+  - name: Chinatown
+    zone: downtown
+    tags: [cultural, food]
+
+  - name: North Beach
+    zone: downtown
+    tags: [italian, nightlife, literary]
+
+  - name: Russian Hill
+    zone: central
+    tags: [residential, hills]
+
+  - name: Nob Hill
+    zone: central
+    tags: [historic, hills]
+
+  # Western
+  - name: Richmond (Inner)
+    zone: west
+    tags: [residential, quiet]
+
+  - name: Richmond (Outer)
+    zone: west
+    tags: [residential, ocean]
+
+  - name: Sunset (Inner)
+    zone: west
+    tags: [residential, quiet]
+
+  - name: Sunset (Outer)
+    zone: west
+    tags: [residential, ocean]
+
+  - name: Golden Gate Park
+    zone: west
+    tags: [park, nature, recreation]
+
+  # Northern
+  - name: Marina
+    zone: north
+    tags: [waterfront, young professionals]
+
+  - name: Pacific Heights
+    zone: north
+    tags: [affluent, views]
+
+  - name: Presidio
+    zone: north
+    tags: [park, historic, nature]
+
+  - name: Sea Cliff
+    zone: north
+    tags: [affluent, ocean views]
+
+  # Eastern
+  - name: SoMa (South of Market)
+    zone: east
+    tags: [tech, arts, nightlife]
+
+  - name: Mission
+    zone: east
+    tags: [hipster, latino, food, murals]
+
+  - name: Potrero Hill
+    zone: east
+    tags: [residential, sunny]
+
+  - name: Dogpatch
+    zone: east
+    tags: [industrial, waterfront, breweries]
+
+  - name: Bayview
+    zone: southeast
+    tags: [residential, diverse]
+
+  # Central
+  - name: Hayes Valley
+    zone: central
+    tags: [boutique, food, arts]
+
+  - name: Haight-Ashbury
+    zone: central
+    tags: [hippie, vintage, parks]
+
+  - name: Cole Valley
+    zone: central
+    tags: [residential, quiet]
+
+  - name: Castro
+    zone: central
+    tags: [lgbtq, nightlife, historic]
+
+  - name: Noe Valley
+    zone: central
+    tags: [family-friendly, cafes]
+
+  - name: Bernal Heights
+    zone: central
+    tags: [residential, views, dog-friendly]
+
+  - name: Glen Park
+    zone: central
+    tags: [residential, quiet, village-feel]
+
+  # Western Addition
+  - name: Western Addition
+    zone: central
+    tags: [diverse, historic]
+
+  - name: Fillmore
+    zone: central
+    tags: [jazz, shopping]
+
+  - name: Japantown
+    zone: central
+    tags: [cultural, food, shopping]
+
+  - name: NOPA (North of Panhandle)
+    zone: central
+    tags: [residential, food]
+
+  - name: Alamo Square
+    zone: central
+    tags: [painted ladies, park]
+
+  # Southern
+  - name: Excelsior
+    zone: south
+    tags: [residential, diverse]
+
+  - name: Visitacion Valley
+    zone: south
+    tags: [residential, quiet]
+
+  # Waterfront
+  - name: Embarcadero
+    zone: waterfront
+    tags: [waterfront, tourist, ferry]
+
+  - name: Fisherman's Wharf
+    zone: waterfront
+    tags: [tourist, seafood]
+
+  # Outside SF but relevant
+  - name: Marin Headlands
+    zone: outside
+    tags: [nature, hiking, views]
+
+  - name: Sausalito
+    zone: outside
+    tags: [waterfront, tourist]
+
+  - name: Point Reyes
+    zone: outside
+    tags: [nature, beaches, wildlife]
