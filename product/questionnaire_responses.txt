@@ -1,0 +1,170 @@
+  Interview: MOOdBBS Product Vision & Use Cases
+
+  Part 1: The User Story
+
+  You mentioned this will run on "a small monitor in your home" - can you paint me a picture of the physical setup?
+  - Where exactly will this monitor be? (Kitchen counter, desk, hallway?)
+  - What size/type of monitor are you thinking?
+  - Will you interact with it standing up, sitting down, walking by?
+
+
+I would like the ability to run this on ANY sized monitor, much like the options available in ~/projects/git/claude-monitor
+
+I think i'll use it in a dedicated way so that i'll notice it while i'm doing other things.  so, imagine a display mounted to the wall near my mail in my kitchen, with a tiny keyboard just for this also placed somewhere accessible but not blocking anything else.
+
+
+  Let's talk about a typical day with MOOdBBS:
+  - When do you imagine yourself first interacting with it? (Morning routine? Throughout the day?)
+  - What triggers you to walk up and log something?
+  - How long do you expect a typical interaction to be? (Quick 10-second tap? Longer reflection?)
+
+
+I can imagine interacting with it throughout the day for a variety of reasons.  If i wake up in a bad mood, i will want to check on things that happened in the past week that might be affecting me.  If i'm in a great mood, same thing, really.  If something happens to me in the course of my day i'll want to log that as quickly as possible.  If i come back from a brisk walk or a bike ride, i'll want it to be as easy and quick as possible to log this too.
+
+
+  You mentioned "near-zero friction via physical numpad" - tell me more:
+  - Will the numpad be the ONLY input device, or is keyboard still an option?
+  - Do you envision pre-programmed "quick log" buttons? (Like "press 2 for 'ate without table'")
+  - Should the numpad be wireless, or wired and always attached?
+
+We should try to make it so that MOST things can be input through a keypad.  At first we'll need to keep a full keyboard attached b/c we will need to learn from the main user (me) what sorts of things should be logged, what quests could be options, etc.
+
+  Part 2: The Mood Tracking Philosophy
+
+  Why RimWorld specifically as the mood model?
+  - What aspects of RimWorld's system resonate with you?
+  - Are there parts you want to adapt or change?
+  - Should we stick closely to RimWorld's specific modifiers, or create our own SF-flavored ones?
+
+Rimworld's system is super simple and yet super powerful.  There are buffs and nerfs to mood that, while arbitrary, aren't too far off from how things affect people.  E.g. if your wife dies you probably ARE going to be close to a mental breakdown for a week or so.  If you eat without table, it might not ruin your whole day, but if you were already close to the edge it could push you over it.
+
+I play Rimworld a lot and I just like the system.
+
+We should try to stick with Rimworld's modifiers for as long as we can stand it, basically.  But i want the ability to add mood buffs and nerfs within the system.  So, customized modifiers should be part of the design.  A stock set from Rimworld to start, and then extensible by the user.
+
+
+  You said the goal is to be "non-judgmental" - how do we achieve that?
+  - What would make it feel judgmental vs. game-like?
+  - Should there be consequences for low mood, or just observation?
+  - How should the system respond when mood is very low?
+
+
+We don't need to worry about that.  HUmans are judgemental, computers just reflecting back a number like "you're probably kinda bummed" are not judgemental.
+
+We might want to have the system respond by suggesting certain quests instead of others, depending on mood.  let's not do that right away though -- bookmark this for a later iteration.
+
+
+  The "traits" system:
+  - Should users pick traits once at setup, or can they evolve?
+  - How many traits should someone have?
+  - Should traits affect quest suggestions? (e.g., "Introvert" gets solo quests)
+
+I think users should pick traits at setup, but they should always be able to edit them through Settings or Configuration or whatever.
+
+Min traits is always zero.  Max traits should be 5, i think.  Traits should definitely affect quest suggestions, but let's bookmark that for v2.
+
+It's possible we could add in meyers-briggs personality as a trait, but just save that as a future idea.  e.g. "ENTP", "ISFJ", etc.
+
+
+  Part 3: The Quest System (WanderMOO)
+
+  "Suggest real-world quests and explorations" - who generates these?
+  - Should MOOdBBS auto-generate them based on your mood/habits?
+  - Will you manually add them yourself?
+  - Eventually, should it pull from APIs? (Yelp, events, weather?)
+
+
+This is a question i'm not totally sure how to answer yet.  I want to work with you (Claude) to feel out how best to generate this content since I will definitely peter out on generating interesting quests -- that's the nature of novelty, after all.  But we can start with putting in categories of quests.  For example: "Take a walk to a bookstore", "Climb a tree", "Bike to an art museum" -- these are all quests that give me a lot of optionality in terms of how far of a walk/bike ride, how tall of a tree, which bookstore.  Over time i'll want to make these more specific, like "walk to Green Apple Books" (very short walk) versus "walk to City Lights Bookstore" (requires a whole late-afternoon-to-evening).
+
+Pulling from APIs is something we could look at once we've settled in with some reasonably satisfying "meat and potatoes" quests (like the ones i just mentioned).
+
+
+  Quest complexity:
+  - Should quests have prerequisites or chains?
+  - Should some quests be recurring? (Daily/weekly goals?)
+  - What happens to expired/failed quests?
+
+Yes, quests should support daily and weekly goals.  Which means there should be a way to set those types of goals somehow.
+
+Quests can be recycled as long as they don't relate to a one-time-only event or something.  There are recurring quests i'd like to see sometimes but opt not to do, like "Go to poetry night on Coit Tower" (happens on the first friday of every month).  there shouldn't be a penalty or any threat of never seeing that quest again.
+
+
+  The "visited a new place" tracking:
+  - How should MOOdBBS know you completed a location quest?
+  - Honor system (just mark it complete)?
+  - Eventually GPS/location integration?
+
+
+MOOdBBS should just accept the user's marking of completion, no need for GPS integration at any time.  At the time of logging completion is when MOOdBBS should award experience points, mark down whatever category of quest was completed (social? constitutional (i.e. good for my overall constitution, like a brisk walk)? creative? experiential (i.e. largely novel)? perhaps more categories, but this is enough to start with), and update the user's mood buffs with (at minimum) "quest completed +5".
+
+MOOdBBS should also query the user after quest completion to see if they want to log any extra mood buffs or debuffs.  e.g. the user may report "pain" (-x depending on severity), or "energized" (+y depending on what happened).  we should develop these in detail over time, i don't want to overspecify this right now.
+
+
+  Part 4: The API & Integration Vision
+
+  "API for remote querying of user's current state" - what's the use case?
+  - What other systems do you want to integrate with?
+  - Home automation? (Lights change based on mood?)
+  - Voice assistants? (Ask about current mood?)
+  - Other apps logging events automatically?
+
+Home automation and voice assistants would be the primary users of this API.
+
+
+  Security considerations:
+  - You mentioned "just being on the LAN is our 'security'" - is that long-term plan?
+  - Should certain actions require authentication?
+  - Should the API be read-only, or allow external writes?
+
+
+I don't need a long-term plan because i don't know how interested i'm going to be in continuing to use this.  Let's just keep it LAN-only and not worry about it right now.
+
+
+  Part 5: The Aesthetic & Feel
+
+  "90s BBS door game feel" - what specific BBSes or door games inspire you?
+  - TradeWars? Legend of the Red Dragon? Other?
+  - What specific visual elements are essential to nail the vibe?
+  - Should we include ANSI color? ASCII art? Box-drawing characters?
+
+
+Legend of the Red Dragon is a good reference point.  I can't remember specifically that many.  I played Tradewars2002 a LOT and i liked it, but i don't know that its model of doing things helps us here at all.  MajorMUD I guess?  I don't know. :) 
+
+Visual elements: think classic 90s cyber / Hackers movie with a hint of tribal for a nod to the surrealist / situationist conceptual framework that underlies turning the real world into an ARG.  Lots of color.   Don't need to go overboard, we'll feel out what's right over time.
+
+
+  The boot sequence:
+  - Should there be a "dialing in" simulation?
+
+Yes please!  
+
+  - Should it show MOTD (message of the day)?
+
+
+Sure!
+
+
+  - Should there be a "last login" display?
+
+Sure, why not?
+
+
+  Part 6: Future Features Priority
+
+  Looking at your "future ideas" list, which excite you most?
+  1. Ongoing text narrative / evolving personal lore
+  2. Location-aware quests
+  3. Idle animations or "colony events"
+  4. Mood-based environmental triggers
+  5. Expedition Log
+  6. RimWorld-style memory system
+
+  Which would you want next after MVP?
+
+
+I love the idea of a Rimworld-style memory system, something that generates digital artifacts for me based on things i have logged.  I don't know if i care for "colony events" at all, i don't think that fits.  All of the other numbers are fun.
+
+I think the immediate next after MVP would probably be an expedition log.
+
+
+

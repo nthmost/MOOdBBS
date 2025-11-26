@@ -1,0 +1,1 @@
+"""MOOdBBS command shell interface."""
