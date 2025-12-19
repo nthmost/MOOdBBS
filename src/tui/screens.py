@@ -1,7 +1,7 @@
 """TUI screens for MOOdBBS using Rich."""
 
 import time
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
@@ -56,7 +56,7 @@ class MainMenuScreen:
     MENU_OPTIONS = [
         ("1", "WanderMOO", "View and manage your quests"),
         ("2", "MoodStats", "Check your current mood and traits"),
-        ("3", "LogAction", "Log a mood-affecting event"),
+        ("3", "QuickLog", "Log a mood-affecting event"),
         ("4", "Settings", "Configure MOOdBBS"),
         ("5", "About", "About this system"),
         ("q", "Quit", "Exit MOOdBBS"),
@@ -119,13 +119,19 @@ class MoodStatsScreen:
         # Get current mood (MoodState object)
         mood_state = self.engine.get_current_mood()
 
-        # Mood display
+        # Mood display with border
+        from rich.panel import Panel
         mood_text = Text()
-        mood_text.append("Current Mood: ", style="white")
         mood_text.append(f"{mood_state.face} ", style="yellow bold")
-        mood_text.append(f"{mood_state.score:+d}", style="cyan")
+        mood_text.append(f"{mood_state.score:+d}", style="cyan bold")
 
-        console.print(Align.center(mood_text))
+        mood_panel = Panel(
+            Align.center(mood_text),
+            title="Current Mood",
+            border_style="cyan",
+            padding=(0, 2)
+        )
+        console.print(Align.center(mood_panel))
         console.print()
 
         # Active traits
@@ -137,13 +143,34 @@ class MoodStatsScreen:
                 console.print(f"      [dim]{trait.description}[/dim]")
             console.print()
 
-        # Active modifiers (MoodEvent objects)
-        if mood_state.active_events:
-            console.print("[cyan bold]Active Modifiers:[/cyan bold]")
+        # Combine moodlets and mood events into one list
+        active_moodlets = self.engine.get_active_moodlets()
+
+        if active_moodlets or mood_state.active_events:
+            console.print("[cyan bold]Active Mood Modifiers:[/cyan bold]")
+
+            # Show moodlets
+            for moodlet in active_moodlets:
+                mod_style = "green" if moodlet['mood_value'] >= 0 else "red"
+                backoff_indicator = " (backoff)" if moodlet['is_in_backoff'] else ""
+                console.print(f"  [{mod_style}]{moodlet['mood_value']:+d}[/{mod_style}] {moodlet['name']}{backoff_indicator}")
+                console.print(f"      [dim]{moodlet['description']}[/dim]")
+
+            # Show mood events
             for event in mood_state.active_events:
                 mod_style = "green" if event.modifier >= 0 else "red"
-                console.print(f"  [{mod_style}]{event.modifier:+d}[/{mod_style}] {event.event_type}")
-                console.print(f"      [dim]{event.description}[/dim]")
+                # Use description as title if event_type is generic (custom, ate_without_table, etc.)
+                # Otherwise use event_type
+                if event.event_type in ['custom'] or '_' in event.event_type:
+                    title = event.description
+                    show_description = False
+                else:
+                    title = event.event_type
+                    show_description = True
+
+                console.print(f"  [{mod_style}]{event.modifier:+d}[/{mod_style}] {title}")
+                if show_description and event.description:
+                    console.print(f"      [dim]{event.description}[/dim]")
         else:
             console.print("[dim]No active mood modifiers[/dim]")
 
@@ -759,69 +786,133 @@ class WanderMOOScreen:
         time.sleep(2)
 
 
-class LogActionScreen:
-    """Log mood-affecting events."""
+class QuickLogScreen:
+    """Quick logging of mood-affecting events via moodlets."""
 
     def __init__(self, engine):
         self.engine = engine
 
     def show(self):
-        """Display mood logging interface."""
+        """Display mood logging interface with categorized moodlets."""
+        while True:
+            console.clear()
+
+            console.print()
+            console.print(Align.center(Text("QuickLog - Apply Moodlet", style="cyan bold")))
+            console.print()
+
+            # Get all event-based moodlets grouped by category
+            all_moodlets = self.engine.get_all_event_moodlets()
+
+            # Group by category
+            by_category = {}
+            for m in all_moodlets:
+                cat = m['category']
+                if cat not in by_category:
+                    by_category[cat] = []
+                by_category[cat].append(m)
+
+            # Display categories
+            console.print("[cyan bold]Select Category:[/cyan bold]")
+            categories = sorted(by_category.keys())
+            for i, cat in enumerate(categories, 1):
+                count = len(by_category[cat])
+                console.print(f"  [cyan bold]{i}[/cyan bold]. {cat.title()} ({count} moodlets)")
+
+            console.print()
+            console.print(f"  [cyan bold]c[/cyan bold]. Create custom moodlet")
+            console.print(f"  [cyan bold]b[/cyan bold]. Back to menu")
+            console.print()
+
+            choice = console.input("[yellow]Enter choice:[/yellow] ").strip().lower()
+
+            if choice == 'b':
+                break
+            elif choice == 'c':
+                self._create_custom_moodlet()
+            else:
+                try:
+                    idx = int(choice) - 1
+                    if idx < 0 or idx >= len(categories):
+                        raise ValueError
+
+                    selected_category = categories[idx]
+                    self._show_category_moodlets(selected_category, by_category[selected_category])
+                except (ValueError, IndexError):
+                    console.print("[red]Invalid choice[/red]")
+                    time.sleep(1)
+
+    def _show_category_moodlets(self, category: str, moodlets: List[Dict[str, Any]]):
+        """Show moodlets in a specific category."""
         console.clear()
 
         console.print()
-        console.print(Align.center(Text("LogAction - Mood Events", style="cyan bold")))
+        console.print(Align.center(Text(f"QuickLog - {category.title()}", style="cyan bold")))
         console.print()
 
-        # Show quick options from library
-        stock_modifiers = self.engine.get_mood_modifier_library()[:8]
+        console.print(f"[cyan bold]{category.title()} Moodlets:[/cyan bold]")
+        for i, moodlet in enumerate(moodlets, 1):
+            mod_style = "green" if moodlet['mood_value'] >= 0 else "red"
+            console.print(f"  [cyan bold]{i}[/cyan bold]. [{mod_style}]{moodlet['mood_value']:+d}[/{mod_style}] {moodlet['name']}")
+            console.print(f"      [dim]{moodlet['description']} ({moodlet['duration_hours']}h)[/dim]")
 
-        console.print("[cyan bold]Quick Options:[/cyan bold]")
-        for i, modifier in enumerate(stock_modifiers, 1):
-            mod_style = "green" if modifier.default_value >= 0 else "red"
-            console.print(f"  [cyan bold]{i}[/cyan bold]. [{mod_style}]{modifier.default_value:+d}[/{mod_style}] {modifier.name}")
-        console.print(f"  [cyan bold]9[/cyan bold]. Custom event")
-        console.print(f"  [cyan bold]0[/cyan bold]. Cancel")
+        console.print()
+        console.print(f"  [cyan bold]0[/cyan bold]. Back")
         console.print()
 
-        choice = console.input("[yellow]Enter choice (1-9, or 0 to cancel):[/yellow] ").strip()
+        choice = console.input("[yellow]Select moodlet:[/yellow] ").strip()
 
         if choice == '0':
             return
 
-        if choice == '9':
-            # Custom event
-            desc = console.input("Event description: ").strip()
-            if not desc:
-                return
+        try:
+            idx = int(choice) - 1
+            if idx < 0 or idx >= len(moodlets):
+                raise ValueError
 
-            modifier_str = console.input("Mood modifier (e.g., +5 or -3): ").strip()
-            try:
-                modifier_val = int(modifier_str)
-            except ValueError:
-                console.print("[red]Invalid modifier[/red]")
-                time.sleep(1)
-                return
+            moodlet = moodlets[idx]
+            self.engine.apply_moodlet(moodlet['id'])
+            console.print(f"[green]✓ Applied: {moodlet['name']} ({moodlet['mood_value']:+d})[/green]")
+            time.sleep(1.5)
+        except (ValueError, IndexError):
+            console.print("[red]Invalid choice[/red]")
+            time.sleep(1)
 
-            self.engine.log_mood_event("custom", modifier_val, desc)
-            console.print(f"[green]Logged: {desc} ({modifier_val:+d})[/green]")
-        else:
-            try:
-                idx = int(choice) - 1
-                if idx < 0 or idx >= len(stock_modifiers):
-                    raise IndexError
+    def _create_custom_moodlet(self):
+        """Create a custom moodlet (to be implemented with LLM)."""
+        console.clear()
 
-                modifier = stock_modifiers[idx]
-                self.engine.log_mood_event(
-                    modifier.event_type,
-                    modifier.default_value,
-                    modifier.name,
-                    modifier.duration_hours
-                )
-                console.print(f"[green]Logged: {modifier.name} ({modifier.default_value:+d})[/green]")
-            except (ValueError, IndexError):
-                console.print("[red]Invalid choice[/red]")
+        console.print()
+        console.print(Align.center(Text("Create Custom Moodlet", style="cyan bold")))
+        console.print()
 
+        # Simple version for now - will add LLM later
+        title = console.input("[yellow]Moodlet title:[/yellow] ").strip()
+        if not title:
+            return
+
+        description = console.input("[yellow]Description (optional):[/yellow] ").strip()
+
+        modifier_str = console.input("[yellow]Mood value (e.g., +5 or -7):[/yellow] ").strip()
+        try:
+            mood_value = int(modifier_str)
+        except ValueError:
+            console.print("[red]Invalid mood value[/red]")
+            time.sleep(1)
+            return
+
+        duration_str = console.input("[yellow]Duration in hours:[/yellow] ").strip()
+        try:
+            duration_hours = int(duration_str)
+        except ValueError:
+            console.print("[red]Invalid duration[/red]")
+            time.sleep(1)
+            return
+
+        # For now, just log it via the old system (we'll migrate this to create actual moodlets later)
+        self.engine.log_mood_event(title, mood_value, description or title, duration_hours)
+
+        console.print(f"[green]✓ Applied: {title} ({mood_value:+d})[/green]")
         time.sleep(1.5)
 
 
@@ -1187,7 +1278,11 @@ class SetupWizardScreen:
         profile.setup_completed = True
         self.engine.db.save_user_profile(profile)
 
+        # Apply "First Login" moodlet
+        self.engine.apply_moodlet(100)  # Moodlet ID 100 = "Joined MOOdBBS!" (+5, 24 hours)
+
         console.input("[yellow]Press Enter to continue...[/yellow]")
         console.print()
         console.print(Align.center("[green]Let's start your MOOdBBS adventure![/green]"))
+        console.print(Align.center("[dim]+5 mood bonus for joining MOOdBBS![/dim]"))
         time.sleep(1)

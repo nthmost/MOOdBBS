@@ -19,7 +19,14 @@ pip install -r requirements.txt
 
 2. Run MOOdBBS:
 ```bash
-python src/main.py
+# TUI (Terminal User Interface) - Recommended
+python tui.py
+
+# Admin Tool
+python admin.py
+
+# Command Shell (for scripting)
+python shell.py
 ```
 
 ## Usage
@@ -27,19 +34,19 @@ python src/main.py
 ### Main Menu Options
 
 1. **WanderMOO** - View and complete quests
-2. **MoodStats** - View current mood score, traits, and active modifiers
-3. **LogAction** - Manually log mood-affecting events
-4. **Settings** - Personalization (coming soon)
+2. **MoodStats** - View current mood score, traits, and active moodlets
+3. **QuickLog** - Browse and apply moodlets by category
+4. **Settings** - Profile configuration (zipcode, transport, memberships)
 5. **About** - Project info
 
-### Sample Mood Events
+### Moodlet System
 
-- Ate without table: -3
-- Had a fine meal: +5
-- Social interaction: +8
-- Completed a walk: +6
-- Too long indoors: -5
-- Saw something beautiful: +4
+MOOdBBS uses a RimWorld-inspired moodlet system with:
+- **8 categories**: Creative, Culture, Exercise, Exploration, Food, Rest, Self-Care, Social
+- **33+ pre-configured moodlets** with varying durations (1-168 hours)
+- **Backoff mechanics**: Some moodlets have two phases (e.g., haircut stays nice for days)
+- **Negative backoffs**: Alcohol provides temporary boost with hangover effect later
+- **Relationship tracking**: Breakups/rejections scale by severity with extended recovery periods
 
 ### Controls
 
@@ -47,6 +54,29 @@ python src/main.py
 - **m**: Show main menu
 - **q**: Quit application
 - **ENTER**: Continue/return
+
+### Admin Tool
+
+The admin tool (`admin.py`) provides database management and statistics:
+
+**Database Operations:**
+- View database status and table statistics
+- Reset database safely (with backup)
+- Create manual backups
+- Run migrations
+
+**Data Management:**
+- View user profile
+- Clear active moodlets
+- Clear active quests
+
+**Statistics:**
+- Moodlet statistics by category
+- Most applied moodlets
+- Quest completion statistics
+- XP tracking
+
+Run with: `python admin.py`
 
 ## Project Structure
 
@@ -67,10 +97,15 @@ MOOdBBS/
 
 - [x] Numpad inputs work and reflect on dashboard
 - [x] Quest completion updates and reduces active quest list
-- [x] Quest completion can trigger mood logging
-- [x] Mood score reacts to logged modifiers
+- [x] Moodlet system with 33+ pre-configured moodlets
+- [x] QuickLog categorized browser interface
+- [x] Backoff mechanics (positive and negative)
+- [x] Mood score reacts to active moodlets
 - [x] System survives reboot (SQLite persistence)
 - [x] Clean 90s BBS aesthetic
+- [x] First login welcome bonus
+- [ ] Quest completion triggers moodlet selection (coming soon)
+- [ ] LLM-suggested custom moodlets (coming soon)
 - [ ] API for external integration (coming soon)
 
 ## Future Features

@@ -53,10 +53,11 @@ Shows:
    - See active traits
    - See active mood modifiers
 
-3. **LogAction** - Manual mood logging
-   - Quick log common events
-   - Create custom events
-   - Events affect mood immediately
+3. **QuickLog** - Manual mood logging (moodlets)
+   - Browse moodlets by category (Creative, Food, Self-Care, Social)
+   - One-press application
+   - Create custom moodlets
+   - Moodlets affect mood immediately with durations
 
 4. **Settings** - Profile configuration
    - Update zipcode
@@ -72,27 +73,45 @@ Shows:
 - **q**: Quit application
 - **ENTER**: Continue/return to previous screen
 
-## Sample Mood Events
+## Sample Moodlets
 
-Pre-configured events in LogAction:
-- Ate without table: -3
-- Had a fine meal: +5
-- Social interaction: +8
-- Completed a walk: +6
-- Too long indoors: -5
-- Saw something beautiful: +4
+Pre-configured moodlets available in QuickLog by category:
+
+**Food:**
+- Ate a fine meal: +6 (4h)
+- Ate a lavish meal: +9 (6h)
+- Had a drink: +4 (2h → -2, 12h hangover)
+- Ate without table: -3 (2h)
+
+**Social:**
+- Gave someone a compliment: +2 (2h)
+- Hugged: +5 (3h)
+- Flirted (welcome): +5 (4h)
+- Rejected: -10 (24h → -5, 12h)
+- Dumped (serious): -15 (72h → -8, 120h)
+
+**Self-Care:**
+- Took a hot shower: +3 (2h)
+- Got a great haircut: +10 (8h → +4, 120h)
+- Watching comfort TV: +10 (1h)
+
+**Creative:**
+- Problem Solved: +6 (6h)
+- Work Praised: +8 (8h)
+- Project Finished: +10 (12h)
 
 ## Understanding Mood Scores
 
-- **20+**: Very Happy `:D`
-- **10-19**: Happy `:)`
-- **0-9**: Neutral `:|`
-- **-1 to -9**: Unhappy `:(`
-- **-10 or lower**: Very Unhappy `D:`
+- **16+**: Very Happy `:D`
+- **6-15**: Happy `:)`
+- **-5 to 5**: Neutral `:|`
+- **-15 to -6**: Unhappy `:(`
+- **-16 or lower**: Very Unhappy `D:`
 
 Mood is calculated from:
-- Active mood events (with 24h default duration)
+- Active moodlets (with specific durations, some with backoff phases)
 - User traits (permanent modifiers)
+- First-time login bonus: +5 for 24h
 
 ## Sample Quests
 

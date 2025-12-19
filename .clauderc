@@ -1,0 +1,27 @@
+# Claude Code Configuration for MOOdBBS
+
+# Allow Python execution and database operations without prompts
+allow_tool_use:
+  - tool: Bash
+    patterns:
+      - "python3*"
+      - "python -m*"
+      - "sqlite3*"
+      - "source venv/bin/activate*"
+      - "pip install*"
+      - "pip3 install*"
+      - "chmod*"
+
+  - tool: Read
+    patterns:
+      - "/Users/nthmost/projects/git/MOOdBBS/**"
+      - "/Users/nthmost/.claude-monitor/**"
+
+  - tool: Write
+    patterns:
+      - "/Users/nthmost/projects/git/MOOdBBS/**"
+      - "/Users/nthmost/.claude-monitor/**"
+
+  - tool: Edit
+    patterns:
+      - "/Users/nthmost/projects/git/MOOdBBS/**"

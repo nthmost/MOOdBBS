@@ -6,7 +6,7 @@ from src.tui.screens import (
     MainMenuScreen,
     MoodStatsScreen,
     WanderMOOScreen,
-    LogActionScreen,
+    QuickLogScreen,
     AboutScreen,
     SettingsScreen,
     SetupWizardScreen,
@@ -26,7 +26,7 @@ class MOOdBBSApp:
         self.main_menu = MainMenuScreen()
         self.mood_stats = MoodStatsScreen(self.engine)
         self.wander_moo = WanderMOOScreen(self.engine)
-        self.log_action = LogActionScreen(self.engine)
+        self.quick_log = QuickLogScreen(self.engine)
         self.about = AboutScreen()
         self.settings = SettingsScreen(self.engine)
 
@@ -50,7 +50,7 @@ class MOOdBBSApp:
             elif choice == '2':
                 self.mood_stats.show()
             elif choice == '3':
-                self.log_action.show()
+                self.quick_log.show()
             elif choice == '4':
                 self.settings.show()
             elif choice == '5':

@@ -76,16 +76,16 @@ class MoodCalculator:
         Returns:
             Mood face string
         """
-        if score >= 20:
-            return ":D"
-        elif score >= 10:
-            return ":)"
-        elif score >= 0:
-            return ":|"
-        elif score > -10:
-            return ":("
+        if score >= 16:
+            return ":D"      # Very happy (16+)
+        elif score >= 6:
+            return ":)"      # Happy (6-15)
+        elif score >= -5:
+            return ":|"      # Neutral (-5 to 5)
+        elif score >= -15:
+            return ":("      # Unhappy (-15 to -6)
         else:
-            return "D:"
+            return "D:"      # Very unhappy (-16 or lower)
 
     def is_expired(self, event: MoodEvent) -> bool:
         """

@@ -363,3 +363,168 @@ class Database:
                 profile.easy_distance, profile.medium_distance, profile.hard_distance,
                 1 if profile.setup_completed else 0
             ))
+
+    # ==================== Moodlet Operations ====================
+
+    def apply_moodlet(self, moodlet_id: int, source_quest_id: Optional[int] = None) -> int:
+        """Apply a moodlet to the user.
+
+        Args:
+            moodlet_id: ID of the moodlet template to apply
+            source_quest_id: Optional quest ID that triggered this moodlet
+
+        Returns:
+            ID of the new active moodlet instance
+        """
+        with self._get_connection() as conn:
+            # Get moodlet template
+            cursor = conn.execute('SELECT * FROM moodlets WHERE id = ?', (moodlet_id,))
+            moodlet = cursor.fetchone()
+
+            if not moodlet:
+                raise ValueError(f"Moodlet {moodlet_id} not found")
+
+            # Calculate expiration times
+            from datetime import timedelta
+            now = datetime.now(timezone.utc)
+            expires_at = now + timedelta(hours=moodlet['duration_hours'])
+
+            backoff_expires_at = None
+            if moodlet['backoff_duration_hours']:
+                backoff_expires_at = expires_at + timedelta(hours=moodlet['backoff_duration_hours'])
+
+            # Insert active moodlet
+            cursor = conn.execute('''
+                INSERT INTO active_moodlets (
+                    moodlet_id, applied_at, expires_at, backoff_expires_at,
+                    is_in_backoff, source_quest_id
+                ) VALUES (?, ?, ?, ?, 0, ?)
+            ''', (
+                moodlet_id,
+                now.isoformat(),
+                expires_at.isoformat(),
+                backoff_expires_at.isoformat() if backoff_expires_at else None,
+                source_quest_id
+            ))
+
+            return cursor.lastrowid
+
+    def get_active_moodlets(self) -> List[Dict[str, Any]]:
+        """Get all currently active moodlets with their template data."""
+        with self._get_connection() as conn:
+            now = datetime.now(timezone.utc).isoformat()
+
+            cursor = conn.execute('''
+                SELECT
+                    am.id, am.applied_at, am.expires_at, am.backoff_expires_at,
+                    am.is_in_backoff, am.source_quest_id,
+                    m.name, m.category, m.mood_value, m.backoff_value, m.description
+                FROM active_moodlets am
+                JOIN moodlets m ON am.moodlet_id = m.id
+                WHERE (am.is_in_backoff = 0 AND am.expires_at > ?)
+                   OR (am.is_in_backoff = 1 AND am.backoff_expires_at > ?)
+                ORDER BY am.applied_at DESC
+            ''', (now, now))
+
+            moodlets = []
+            for row in cursor.fetchall():
+                moodlets.append({
+                    'id': row['id'],
+                    'name': row['name'],
+                    'category': row['category'],
+                    'mood_value': row['backoff_value'] if row['is_in_backoff'] else row['mood_value'],
+                    'description': row['description'],
+                    'applied_at': row['applied_at'],
+                    'expires_at': row['backoff_expires_at'] if row['is_in_backoff'] else row['expires_at'],
+                    'is_in_backoff': bool(row['is_in_backoff']),
+                    'source_quest_id': row['source_quest_id']
+                })
+
+            return moodlets
+
+    def cleanup_expired_moodlets(self):
+        """Remove expired moodlets and transition to backoff phase where applicable."""
+        with self._get_connection() as conn:
+            now = datetime.now(timezone.utc).isoformat()
+
+            # Transition to backoff phase
+            conn.execute('''
+                UPDATE active_moodlets
+                SET is_in_backoff = 1
+                WHERE is_in_backoff = 0
+                  AND expires_at <= ?
+                  AND backoff_expires_at IS NOT NULL
+                  AND backoff_expires_at > ?
+            ''', (now, now))
+
+            # Delete fully expired moodlets
+            conn.execute('''
+                DELETE FROM active_moodlets
+                WHERE (is_in_backoff = 0 AND expires_at <= ?)
+                   OR (is_in_backoff = 1 AND backoff_expires_at <= ?)
+            ''', (now, now))
+
+    def get_moodlets_by_category(self, category: str, is_quest_based: Optional[bool] = None) -> List[Dict[str, Any]]:
+        """Get all moodlet templates in a category.
+
+        Args:
+            category: Category name (e.g., 'social', 'food', 'exercise')
+            is_quest_based: Filter by quest-based (True) or event-based (False), or None for all
+
+        Returns:
+            List of moodlet template dictionaries
+        """
+        with self._get_connection() as conn:
+            if is_quest_based is None:
+                cursor = conn.execute('''
+                    SELECT * FROM moodlets
+                    WHERE category = ?
+                    ORDER BY mood_value DESC
+                ''', (category,))
+            else:
+                cursor = conn.execute('''
+                    SELECT * FROM moodlets
+                    WHERE category = ? AND is_quest_based = ?
+                    ORDER BY mood_value DESC
+                ''', (category, 1 if is_quest_based else 0))
+
+            moodlets = []
+            for row in cursor.fetchall():
+                moodlets.append({
+                    'id': row['id'],
+                    'name': row['name'],
+                    'category': row['category'],
+                    'mood_value': row['mood_value'],
+                    'duration_hours': row['duration_hours'],
+                    'backoff_value': row['backoff_value'],
+                    'backoff_duration_hours': row['backoff_duration_hours'],
+                    'description': row['description'],
+                    'is_quest_based': bool(row['is_quest_based'])
+                })
+
+            return moodlets
+
+    def get_all_event_moodlets(self) -> List[Dict[str, Any]]:
+        """Get all event-based (non-quest) moodlet templates, grouped by category."""
+        with self._get_connection() as conn:
+            cursor = conn.execute('''
+                SELECT * FROM moodlets
+                WHERE is_quest_based = 0 AND category != 'system'
+                ORDER BY category, mood_value DESC
+            ''')
+
+            moodlets = []
+            for row in cursor.fetchall():
+                moodlets.append({
+                    'id': row['id'],
+                    'name': row['name'],
+                    'category': row['category'],
+                    'mood_value': row['mood_value'],
+                    'duration_hours': row['duration_hours'],
+                    'backoff_value': row['backoff_value'],
+                    'backoff_duration_hours': row['backoff_duration_hours'],
+                    'description': row['description'],
+                    'is_quest_based': bool(row['is_quest_based'])
+                })
+
+            return moodlets

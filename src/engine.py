@@ -71,8 +71,44 @@ class MOOdBBSEngine:
 
     # ==================== Mood System ====================
 
+    def apply_moodlet(self, moodlet_id: int, source_quest_id: Optional[int] = None) -> int:
+        """Apply a moodlet to the user.
+
+        Args:
+            moodlet_id: ID of the moodlet template to apply
+            source_quest_id: Optional quest ID that triggered this moodlet
+
+        Returns:
+            ID of the new active moodlet instance
+        """
+        return self.db.apply_moodlet(moodlet_id, source_quest_id)
+
+    def get_active_moodlets(self) -> List[Dict[str, Any]]:
+        """Get all currently active moodlets."""
+        return self.db.get_active_moodlets()
+
+    def cleanup_expired_moodlets(self):
+        """Remove expired moodlets and transition to backoff phase."""
+        self.db.cleanup_expired_moodlets()
+
+    def get_moodlets_by_category(self, category: str, is_quest_based: Optional[bool] = None) -> List[Dict[str, Any]]:
+        """Get moodlet templates by category."""
+        return self.db.get_moodlets_by_category(category, is_quest_based)
+
+    def get_all_event_moodlets(self) -> List[Dict[str, Any]]:
+        """Get all event-based moodlets."""
+        return self.db.get_all_event_moodlets()
+
     def get_current_mood(self) -> MoodState:
         """Get current mood score and contributing factors."""
+        # Clean up expired moodlets first
+        self.cleanup_expired_moodlets()
+
+        # Get active moodlets
+        active_moodlets = self.get_active_moodlets()
+        moodlet_score = sum(m['mood_value'] for m in active_moodlets)
+
+        # Get traditional mood events
         active_events = [e for e in self._mood_events if e.is_active]
 
         # Filter out expired events
@@ -83,10 +119,21 @@ class MOOdBBSEngine:
 
         active_traits = [t for t in self._traits if t.is_active]
 
-        return self.mood_calculator.create_mood_state(
+        # Calculate mood state
+        mood_state = self.mood_calculator.create_mood_state(
             events=active_events,
             traits=active_traits
         )
+
+        # Add moodlet score to total
+        mood_state.score += moodlet_score
+
+        # Add moodlets to contributing factors (optional, for display)
+        for moodlet in active_moodlets:
+            # We can extend MoodState to include moodlets in the future
+            pass
+
+        return mood_state
 
     def log_mood_event(
         self,
